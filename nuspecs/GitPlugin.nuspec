@@ -8,7 +8,7 @@
     <owners>Alexandre Oliveira</owners>
     <licenseUrl>https://github.com/RockyTV/duality-git/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/RockyTV/duality-git</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/RockyTV/duality-git/blob/master/nuspecs/git.png</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/RockyTV/duality-git/master/EmbeddedResources/git.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A Duality plugin which turns your current game directory into a Git repository.</description>
     <tags>Duality Editor Plugin Git</tags>
