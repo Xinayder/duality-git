@@ -1,0 +1,9 @@
+*.orig
+*.dll
+*.userprefs
+bin/*
+obj/*
+*.suo
+*.csproj.user
+*.nupkg
+packages/*
