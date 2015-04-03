@@ -45,38 +45,18 @@
     <Reference Include="DualityEditor">
       <HintPath>packages\AdamsLair.Duality.Editor.1.4.0\lib\DualityEditor.exe</HintPath>
     </Reference>
-    <Reference Include="FarseerDuality">
-      <HintPath>packages\AdamsLair.FarseerDuality.3.3.9.0\lib\net40\FarseerDuality.dll</HintPath>
-    </Reference>
     <Reference Include="LibGit2Sharp">
       <HintPath>packages\LibGit2Sharp.0.21.0.176\lib\net40\LibGit2Sharp.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Web.XmlTransform">
-      <HintPath>packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
-    </Reference>
     <Reference Include="NuGet.Core">
       <HintPath>packages\NuGet.Core.2.8.3\lib\net40-Client\NuGet.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="NVorbis">
-      <HintPath>packages\AdamsLair.NVorbis.0.7.4\lib\NVorbis.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenTK">
-      <HintPath>packages\AdamsLair.OpenTK.1.1.1.0\lib\net20\OpenTK.dll</HintPath>
-    </Reference>
-    <Reference Include="OpenTK.GLControl">
-      <HintPath>packages\AdamsLair.OpenTK.GLControl.1.1.1.0\lib\net20\OpenTK.GLControl.dll</HintPath>
-    </Reference>
-    <Reference Include="PopupControl">
-      <HintPath>packages\AdamsLair.WinForms.PopupControl.1.0.0.0\lib\net40\PopupControl.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="WeifenLuo.WinFormsUI.Docking">
       <HintPath>packages\AdamsLair.DockPanelSuite.2.8.1.0\lib\net20\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
@@ -90,16 +70,15 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>GitPluginRes.resx</DependentUpon>
     </Compile>
-    <Compile Include="GitSettings.cs">
+    <Compile Include="SettingsWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="GitSettings.Designer.cs">
-      <DependentUpon>GitSettings.cs</DependentUpon>
+    <Compile Include="SettingsWindow.Designer.cs">
+      <DependentUpon>SettingsWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="GitPlugin.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -107,8 +86,8 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>GitPluginRes.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="GitSettings.resx">
-      <DependentUpon>GitSettings.cs</DependentUpon>
+    <EmbeddedResource Include="SettingsWindow.resx">
+      <DependentUpon>SettingsWindow.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

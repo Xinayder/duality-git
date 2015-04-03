@@ -1,15 +1,16 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>RockyTV.GitPlugin.editor</id>
-    <version>0.0.1</version>
+    <id>RockyTV.Duality.Plugin.GitPlugin</id>
+    <version>0.0.2</version>
     <title>RockyTV's Git Plugin</title>
     <authors>Alexandre Oliveira</authors>
     <owners>Alexandre Oliveira</owners>
     <licenseUrl>https://github.com/RockyTV/duality-git/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/RockyTV/duality-git</projectUrl>
-    <iconUrl>https://raw.githubusercontent.com/RockyTV/duality-git/master/EmbeddedResources/git.png</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/RockyTV/duality-git/master/nuspecs/git.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
+	<summary>Git integration plugin for the Duality Engine.</summary>
     <description>A Duality plugin which turns your current game directory into a Git repository.</description>
     <tags>Duality Editor Plugin Git</tags>
     <dependencies>
@@ -17,7 +18,7 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\RockyTV.GitPlugin.editor.dll" target="lib\RockyTV.GitPlugin.editor.dll" />
-    <file src="bin\Release\RockyTV.GitPlugin.editor.pdb" target="lib\RockyTV.GitPlugin.editor.pdb" />
+    <file src="..\bin\Release\RockyTV.GitPlugin.editor.dll" target="lib\RockyTV.GitPlugin.editor.dll" />
+    <file src="..\bin\Release\RockyTV.GitPlugin.editor.pdb" target="lib\RockyTV.GitPlugin.editor.pdb" />
   </files>
 </package>

@@ -63,9 +63,9 @@ namespace RockyTV.Duality.GitPlugin.Properties {
         /// <summary>
         ///   Looks up a localized string similar to Save.
         /// </summary>
-        internal static string Button_GitSave {
+        internal static string Button_Save {
             get {
-                return ResourceManager.GetString("Button_GitSave", resourceCulture);
+                return ResourceManager.GetString("Button_Save", resourceCulture);
             }
         }
         
@@ -99,20 +99,20 @@ namespace RockyTV.Duality.GitPlugin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Email.
+        ///   Looks up a localized string similar to Author Email:.
         /// </summary>
-        internal static string Label_GitEmail {
+        internal static string Label_AuthorEmail {
             get {
-                return ResourceManager.GetString("Label_GitEmail", resourceCulture);
+                return ResourceManager.GetString("Label_AuthorEmail", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Name.
+        ///   Looks up a localized string similar to Author Name:.
         /// </summary>
-        internal static string Label_GitName {
+        internal static string Label_AuthorName {
             get {
-                return ResourceManager.GetString("Label_GitName", resourceCulture);
+                return ResourceManager.GetString("Label_AuthorName", resourceCulture);
             }
         }
         
@@ -122,6 +122,24 @@ namespace RockyTV.Duality.GitPlugin.Properties {
         internal static string MenuItemName_Git {
             get {
                 return ResourceManager.GetString("MenuItemName_Git", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set the email of the author of the commits..
+        /// </summary>
+        internal static string ToolTip_AuthorEmail {
+            get {
+                return ResourceManager.GetString("ToolTip_AuthorEmail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set the name of the author of the commits..
+        /// </summary>
+        internal static string ToolTip_AuthorName {
+            get {
+                return ResourceManager.GetString("ToolTip_AuthorName", resourceCulture);
             }
         }
         

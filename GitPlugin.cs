@@ -1,19 +1,22 @@
 ﻿using System;
+using System.IO;
+using System.Xml.Linq;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 using Duality;
 using Duality.Editor;
 using Duality.Editor.Forms;
-
-using WeifenLuo.WinFormsUI.Docking;
+using Duality.Editor.Properties;
 
 using LibGit2Sharp;
-using System.IO;
-using System.Collections.Generic;
+using LibGit2Sharp.Core;
+
+using WeifenLuo.WinFormsUI.Docking;
 using AdamsLair.WinForms.ItemModels;
-using Duality.Editor.Properties;
+
 using RockyTV.Duality.GitPlugin.Properties;
-using System.Xml.Linq;
+using System.Text;
 
 namespace RockyTV.Duality.GitPlugin
 {
@@ -26,7 +29,7 @@ namespace RockyTV.Duality.GitPlugin
         }
 
         private bool isLoading = false;
-        private GitSettings gitSettings = null;
+        private SettingsWindow gitSettings = null;
 
         private string gameDirectory = null;
 
@@ -49,7 +52,7 @@ namespace RockyTV.Duality.GitPlugin
         {
             this.isLoading = true;
             IDockContent result;
-            if (dockContentType == typeof(GitSettings))
+            if (dockContentType == typeof(SettingsWindow))
                 result = RequestGitSettings();
             else
                 result = base.DeserializeDockContent(dockContentType);
@@ -60,10 +63,23 @@ namespace RockyTV.Duality.GitPlugin
         protected override void InitPlugin(MainForm main)
         {
             base.InitPlugin(main);
+            string gitIgnoreFile = Path.Combine(this.gameDirectory, ".gitignore");
 
-            Write("Initializing git repo on {0}", this.gameDirectory);
-            Repository.Init(this.gameDirectory);
+            // Try to init a git repository on the current working path.
+            // Throws if we the directory wasn't found.
+            try
+            {
+                Repository.Init(this.gameDirectory);
+                Write("Initialized Git repo on '{0}'.", this.gameDirectory);
+            }
+            catch (NotFoundException e)
+            {
+                WriteError(e.Message);
+            }
             this.isRepoInit = true;
+
+            // Generate our .gitignore file
+            this.GenerateGitIgnore();
 
             MenuModelItem viewItem = main.MainMenu.RequestItem(GeneralRes.MenuName_Settings);
             viewItem.AddItem(new MenuModelItem
@@ -92,45 +108,77 @@ namespace RockyTV.Duality.GitPlugin
             {
                 using (var repo = new Repository(gameDirectory))
                 {
-                    foreach (string file in Directory.GetFiles(gameDirectory, "*", SearchOption.AllDirectories))
+                    StringBuilder sb = new StringBuilder();
+
+                    // Loop through each file of each directory under our repository
+                    foreach (string file in Directory.GetFiles(this.gameDirectory, "*", SearchOption.AllDirectories))
                     {
-                        try
+                        // Get the status for our file
+                        FileStatus status = repo.RetrieveStatus(file);
+
+                        FileStatus[] ignoreFileStatus = new FileStatus[] { 
+                            FileStatus.Ignored, FileStatus.Missing, FileStatus.Nonexistent, FileStatus.Unaltered, 
+                            FileStatus.Unreadable
+                        };
+
+                        // Check if the current file status is not one of the ignored file status
+                        foreach (FileStatus ignoreStatus in ignoreFileStatus)
                         {
-                            string currPath = Path.GetDirectoryName(file);
-                            string currFile = Path.GetFileName(file);
-
-                            if (currPath.Contains(".git")) continue;
-                            if (currFile == "EditorUserData.xml") continue;
-                            if (currFile == "perflog_editor.txt") continue;
-                            if (currFile == "logfile_editor.txt") continue;
-                            if (currFile == "logfile.txt") continue;
-                            if (currFile == "perflog.txt") continue;
-                            if (currFile == "AppData.dat") continue;
-
-                            Write("Staging file '{0}' for commit", currFile);
-                            repo.Stage(file);
+                            if (status != ignoreStatus) repo.Stage(file);
                         }
-                        catch (Exception e) // probably caused because the process is using our file
+
+                        // Write to our commit message what has been altered
+                        switch (status)
                         {
-                            WriteError("Couldn't stage file '{0}' for commit: {1}", file, e.Message);
+                            case FileStatus.Added:
+                                sb.AppendLine(string.Format("Added file '{0}'", file));
+                                break;
+                            case FileStatus.Removed:
+                                sb.AppendLine(string.Format("Removed file '{0}'", file));
+                                break;
+                            case FileStatus.RenamedInIndex:
+                                sb.AppendLine(string.Format("Renamed file '{0}' in index", file));
+                                break;
+                            case FileStatus.StagedTypeChange:
+                                sb.AppendLine(string.Format("Staged type change for file '{0}'", file));
+                                break;
+                            case FileStatus.Modified:
+                                sb.AppendLine(string.Format("Modified file '{0}'", file));
+                                break;
+                            case FileStatus.TypeChanged:
+                                sb.AppendLine(string.Format("Change type for file '{0}'", file));
+                                break;
+                            case FileStatus.RenamedInWorkDir:
+                                sb.AppendLine(string.Format("Renamed file '{0}' in work dir", file));
+                                break;
                         }
                     }
+                    sb.AppendLine();
 
+                    // Setup the commit author
                     Signature author = null;
                     if (this.authorName != null && this.authorEmail != null)
-                    {
                         author = new Signature(this.authorName, this.authorEmail, DateTime.Now);
-                    }
                     else
+                        author = new Signature("John Doe", "john.doe@example.com", DateTime.Now);
+
+                    // Try to commit. If it throws, we log it.
+                    try
                     {
-                        author = new Signature("John Doe", "example@example.com", DateTime.Now);
+                        Write("Committing changes...");
+                        Commit commit = repo.Commit(string.Join(@"\r\n", sb.ToString()), author);
                     }
-
-                    Commit commit = repo.Commit("Editor reload. Saved repository.", author);
-
-                    Write("Committed changes.");
+                    catch (EmptyCommitException e)
+                    {
+                        WriteWarning("Nothing changed. Skipping commit.");
+                    }
+                    catch (Exception e)
+                    {
+                        WriteError("Error while committing: {0}", e.Message);
+                    }
                 }
 
+                // Finally, we save our data.
                 if (this.gitSettings != null)
                 {
                     XElement gitElem = new XElement("GitPlugin_0");
@@ -139,11 +187,11 @@ namespace RockyTV.Duality.GitPlugin
                 }
             }
         }
-        public GitSettings RequestGitSettings()
+        public SettingsWindow RequestGitSettings()
         {
             if (this.gitSettings == null || this.gitSettings.IsDisposed)
             {
-                this.gitSettings = new GitSettings();
+                this.gitSettings = new SettingsWindow();
                 this.gitSettings.FormClosed += delegate(object sender, FormClosedEventArgs e) { this.gitSettings = null; };
             }
 
@@ -170,6 +218,7 @@ namespace RockyTV.Duality.GitPlugin
             this.RequestGitSettings();
         }
 
+        #region Log
         private static void Write(string msg, params object[] obj)
         {
             string message = string.Format("[GitPlugin] {0}", msg);
@@ -184,6 +233,64 @@ namespace RockyTV.Duality.GitPlugin
         {
             string message = string.Format("[GitPlugin] {0}", msg);
             Log.Editor.WriteError(message, obj);
+        }
+        #endregion
+
+        #region GetGitIgnore()
+        // This is a method that generates our formatted .gitignore file
+        private string GetGitIgnore()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine(string.Format("# .gitignore generated on {0}", DateTime.Now.ToString()));
+            sb.AppendLine("# ENCODING: UTF-8");
+            sb.AppendLine();
+            sb.AppendLine("# Directories");
+            sb.AppendLine("#");
+            sb.AppendLine(".git");
+            sb.AppendLine("Backup");
+            sb.AppendLine("Source/Code/**/bin");
+            sb.AppendLine("Source/Code/**/obj");
+            sb.AppendLine("Source/Packages");
+            sb.AppendLine();
+            sb.AppendLine("# Files");
+            sb.AppendLine("#");
+            sb.AppendLine("*.csproj.user");
+            sb.AppendLine("*.suo");
+            sb.AppendLine("AppData.dat");
+            sb.AppendLine("EditorUserData.xml");
+            sb.AppendLine("logfile.txt");
+            sb.AppendLine("logfile_editor.txt");
+            sb.AppendLine("perflog.txt");
+            sb.AppendLine("perflog_editor.txt");
+            sb.AppendLine();
+
+            return sb.ToString();
+        }
+        #endregion
+
+        // Method for generating a .gitignore file
+        private void GenerateGitIgnore(string file)
+        {
+            try
+            {
+                if (!File.Exists(file)) // If the file does not exist, create a new one
+                {
+                    File.WriteAllText(file, this.GetGitIgnore(), Encoding.UTF8);
+                    Write("Created .gitignore file.");
+                }
+                else
+                    Write(".gitignore does exist. Skipping creation of a new one.");
+            }
+            catch (Exception e)
+            {
+                WriteError("Failed to create .gitignore file: {0}", e.Message);
+            }
+        }
+        private void GenerateGitIgnore()
+        {
+            string gitIgnorePath = Path.Combine(this.gameDirectory, ".gitignore");
+            this.GenerateGitIgnore(gitIgnorePath);
         }
     }
 }
