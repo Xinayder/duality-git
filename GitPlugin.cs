@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Xml.Linq;
 using System.Windows.Forms;
 using System.Collections.Generic;
@@ -16,7 +17,6 @@ using WeifenLuo.WinFormsUI.Docking;
 using AdamsLair.WinForms.ItemModels;
 
 using RockyTV.Duality.GitPlugin.Properties;
-using System.Text;
 
 namespace RockyTV.Duality.GitPlugin
 {
@@ -40,7 +40,7 @@ namespace RockyTV.Duality.GitPlugin
 
         public override string Id
         {
-            get { return "GitPlugin"; }
+            get { return "RockyTV.GitPlugin"; }
         }
 
         public GitPlugin()
@@ -63,23 +63,23 @@ namespace RockyTV.Duality.GitPlugin
         protected override void InitPlugin(MainForm main)
         {
             base.InitPlugin(main);
-            string gitIgnoreFile = Path.Combine(this.gameDirectory, ".gitignore");
 
             // Try to init a git repository on the current working path.
-            // Throws if we the directory wasn't found.
+            // Throws if the directory wasn't found.
             try
             {
-                Repository.Init(this.gameDirectory);
+                Repository.Init(this.gameDirectory); // Re/initialize a Git repository on the current working directory
                 Write("Initialized Git repo on '{0}'.", this.gameDirectory);
+                this.isRepoInit = true;
             }
-            catch (NotFoundException e)
+            catch (Exception e)
             {
-                WriteError(e.Message);
+                WriteError("Failed to initialize Git repository on '{0}': {1}", this.gameDirectory, e.Message);
+                this.isRepoInit = false;
             }
-            this.isRepoInit = true;
 
             // Generate our .gitignore file
-            this.GenerateGitIgnore();
+            this.CreateGitIgnore();
 
             MenuModelItem viewItem = main.MainMenu.RequestItem(GeneralRes.MenuName_Settings);
             viewItem.AddItem(new MenuModelItem
@@ -89,24 +89,24 @@ namespace RockyTV.Duality.GitPlugin
                 ActionHandler = this.menuItemGitSettings_Click
             });
         }
-        protected override void LoadUserData(System.Xml.Linq.XElement node)
+        protected override void LoadUserData(XElement node)
         {
-            this.isLoading = true;
-            if (this.gitSettings != null)
+            this.isLoading = true; // Tell Duality that our plugin is loading
+            if (this.gitSettings != null) // Null check against our settings window
             {
                 XElement gitElem = node.Element("GitPlugin_0");
-                if (gitElem != null)
+                if (gitElem != null) // If our settings window is not null
                 {
-                    this.gitSettings.LoadUserData(gitElem);
+                    this.gitSettings.LoadUserData(gitElem); // Call its load method
                 }
             }
-            this.isLoading = false;
+            this.isLoading = false; // Tell Duality that our plugin has finished loading
         }
-        protected override void SaveUserData(System.Xml.Linq.XElement node)
+        protected override void SaveUserData(XElement node)
         {
-            if (this.isRepoInit)
+            if (this.isRepoInit) // Check if the repository has been initialized successfully
             {
-                using (var repo = new Repository(gameDirectory))
+                using (Repository repo = new Repository(gameDirectory))
                 {
                     StringBuilder sb = new StringBuilder();
 
@@ -158,9 +158,13 @@ namespace RockyTV.Duality.GitPlugin
                     // Setup the commit author
                     Signature author = null;
                     if (this.authorName != null && this.authorEmail != null)
+                    {
                         author = new Signature(this.authorName, this.authorEmail, DateTime.Now);
+                    }
                     else
+                    {
                         author = new Signature("John Doe", "john.doe@example.com", DateTime.Now);
+                    }
 
                     // Try to commit. If it throws, we log it.
                     try
@@ -168,7 +172,7 @@ namespace RockyTV.Duality.GitPlugin
                         Write("Committing changes...");
                         Commit commit = repo.Commit(string.Join(@"\r\n", sb.ToString()), author);
                     }
-                    catch (EmptyCommitException e)
+                    catch (EmptyCommitException)
                     {
                         WriteWarning("Nothing changed. Skipping commit.");
                     }
@@ -187,6 +191,7 @@ namespace RockyTV.Duality.GitPlugin
                 }
             }
         }
+        // This method here requests a new SettingsWindow.
         public SettingsWindow RequestGitSettings()
         {
             if (this.gitSettings == null || this.gitSettings.IsDisposed)
@@ -207,6 +212,12 @@ namespace RockyTV.Duality.GitPlugin
 
             return this.gitSettings;
         }
+        /// <summary>
+        /// Pass our <see cref="SettingsWindow.cs"/> settings to <see cref="GitPlugin.cs"/>.
+        /// Defines the author name and email of the commits.
+        /// </summary>
+        /// <param name="name">The name of the author you want to show on commits.</param>
+        /// <param name="email">The email of the author you want to show on commits.</param>
         public void SetGitSettings(string name, string email)
         {
             this.authorEmail = email;
@@ -237,8 +248,11 @@ namespace RockyTV.Duality.GitPlugin
         #endregion
 
         #region GetGitIgnore()
-        // This is a method that generates our formatted .gitignore file
-        private string GetGitIgnore()
+        /// <summary>
+        /// Generate a formatted .gitignore file.
+        /// </summary>
+        /// <returns>A formatted .gitignore file.</returns>
+        private string GenerateGitIgnore()
         {
             StringBuilder sb = new StringBuilder();
 
@@ -269,14 +283,22 @@ namespace RockyTV.Duality.GitPlugin
         }
         #endregion
 
-        // Method for generating a .gitignore file
-        private void GenerateGitIgnore(string file)
+        private void CreateGitIgnore()
+        {
+            string gitIgnorePath = Path.Combine(this.gameDirectory, ".gitignore");
+            this.CreateGitIgnore(gitIgnorePath);
+        }
+        /// <summary>
+        /// Create a brand new .gitignore file in the specified path.
+        /// </summary>
+        /// <param name="file">The file path where you want the file to be created in.</param>
+        private void CreateGitIgnore(string file)
         {
             try
             {
                 if (!File.Exists(file)) // If the file does not exist, create a new one
                 {
-                    File.WriteAllText(file, this.GetGitIgnore(), Encoding.UTF8);
+                    File.WriteAllText(file, this.GenerateGitIgnore(), Encoding.UTF8);
                     Write("Created .gitignore file.");
                 }
                 else
@@ -286,11 +308,6 @@ namespace RockyTV.Duality.GitPlugin
             {
                 WriteError("Failed to create .gitignore file: {0}", e.Message);
             }
-        }
-        private void GenerateGitIgnore()
-        {
-            string gitIgnorePath = Path.Combine(this.gameDirectory, ".gitignore");
-            this.GenerateGitIgnore(gitIgnorePath);
         }
     }
 }
