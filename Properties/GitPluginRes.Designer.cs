@@ -61,24 +61,6 @@ namespace RockyTV.Duality.GitPlugin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Save.
-        /// </summary>
-        internal static string Button_Save {
-            get {
-                return ResourceManager.GetString("Button_Save", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use custom commit messages.
-        /// </summary>
-        internal static string Checkbox_CustomMessages {
-            get {
-                return ResourceManager.GetString("Checkbox_CustomMessages", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap IconGit {
@@ -99,56 +81,11 @@ namespace RockyTV.Duality.GitPlugin.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Author Email:.
-        /// </summary>
-        internal static string Label_AuthorEmail {
-            get {
-                return ResourceManager.GetString("Label_AuthorEmail", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Author Name:.
-        /// </summary>
-        internal static string Label_AuthorName {
-            get {
-                return ResourceManager.GetString("Label_AuthorName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Git.
+        ///   Looks up a localized string similar to Git Settings.
         /// </summary>
         internal static string MenuItemName_Git {
             get {
                 return ResourceManager.GetString("MenuItemName_Git", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Set the email of the author of the commits..
-        /// </summary>
-        internal static string ToolTip_AuthorEmail {
-            get {
-                return ResourceManager.GetString("ToolTip_AuthorEmail", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Set the name of the author of the commits..
-        /// </summary>
-        internal static string ToolTip_AuthorName {
-            get {
-                return ResourceManager.GetString("ToolTip_AuthorName", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Git Settings.
-        /// </summary>
-        internal static string WindowName {
-            get {
-                return ResourceManager.GetString("WindowName", resourceCulture);
             }
         }
     }

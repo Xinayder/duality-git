@@ -7,3 +7,4 @@ obj/*
 *.csproj.user
 *.nupkg
 packages/*
+Thumbs.db

@@ -17,24 +17,32 @@ using WeifenLuo.WinFormsUI.Docking;
 using AdamsLair.WinForms.ItemModels;
 
 using RockyTV.Duality.GitPlugin.Properties;
+using Duality.Serialization;
 
 namespace RockyTV.Duality.GitPlugin
 {
-    public class GitPlugin : EditorPlugin
+    public class PluginGit : EditorPlugin
     {
-        private static GitPlugin instance = null;
-        internal static GitPlugin Instance
+        private static PluginGit singleton;
+        public static PluginGit fetch 
         {
-            get { return instance; }
+            get { return singleton; }
         }
 
+        private DateTime lastCommitTime = DateTime.UtcNow;
+
         private bool isLoading = false;
-        private SettingsWindow gitSettings = null;
 
         private string gameDirectory = null;
 
-        private string authorName = null;
-        private string authorEmail = null;
+        private string userDataPath = null;
+
+        private GitUserData userData = null;
+        public GitUserData UserData
+        {
+            get { return this.userData; }
+            set { this.userData = value ?? new GitUserData(); }
+        }
 
         private bool isRepoInit = false;
 
@@ -43,40 +51,36 @@ namespace RockyTV.Duality.GitPlugin
             get { return "RockyTV.GitPlugin"; }
         }
 
-        public GitPlugin()
+        public PluginGit()
         {
-            instance = this;
+            singleton = this;
             gameDirectory = Environment.CurrentDirectory;
-        }
-        protected override IDockContent DeserializeDockContent(Type dockContentType)
-        {
-            this.isLoading = true;
-            IDockContent result;
-            if (dockContentType == typeof(SettingsWindow))
-                result = RequestGitSettings();
-            else
-                result = base.DeserializeDockContent(dockContentType);
-            this.isLoading = false;
-            return result;
-
         }
         protected override void InitPlugin(MainForm main)
         {
             base.InitPlugin(main);
+
+            this.userDataPath = Path.Combine(gameDirectory, "GitSettings.dat");
 
             // Try to init a git repository on the current working path.
             // Throws if the directory wasn't found.
             try
             {
                 Repository.Init(this.gameDirectory); // Re/initialize a Git repository on the current working directory
-                Write("Initialized Git repo on '{0}'.", this.gameDirectory);
+                Logger.Debug("Initialized Git repo on '{0}'.", this.gameDirectory);
                 this.isRepoInit = true;
             }
             catch (Exception e)
             {
-                WriteError("Failed to initialize Git repository on '{0}': {1}", this.gameDirectory, e.Message);
+                Logger.LogError("Failed to initialize Git repository on '{0}': {1}", this.gameDirectory, e.Message);
                 this.isRepoInit = false;
             }
+
+            // Subscribe to events.
+            this.SubscribeToEvents();
+
+            // Load our user data.
+            this.LoadGitData();
 
             // Generate our .gitignore file
             this.CreateGitIgnore();
@@ -89,20 +93,36 @@ namespace RockyTV.Duality.GitPlugin
                 ActionHandler = this.menuItemGitSettings_Click
             });
         }
-        protected override void LoadUserData(XElement node)
+        private void menuItemGitSettings_Click(object sender, EventArgs e)
         {
-            this.isLoading = true; // Tell Duality that our plugin is loading
-            if (this.gitSettings != null) // Null check against our settings window
-            {
-                XElement gitElem = node.Element("GitPlugin_0");
-                if (gitElem != null) // If our settings window is not null
-                {
-                    this.gitSettings.LoadUserData(gitElem); // Call its load method
-                }
-            }
-            this.isLoading = false; // Tell Duality that our plugin has finished loading
+            //this.RequestGitSettings();
+            DualityEditorApp.Select(this, new ObjectSelection(new[] { this.UserData }));
         }
         protected override void SaveUserData(XElement node)
+        {
+            if (this.userData.CommitSettings == CommitTrigger.EditorReload)
+            {
+                this.SaveGitData();
+            }
+        }
+        private void SubscribeToEvents() // Subscribe to events we need.
+        {
+            DualityEditorApp.EditorIdling += Plugin_EditorIdling; // Called when the editor is idling.
+            DualityEditorApp.SaveAllTriggered += Plugin_SaveAllTriggered; // Called when save all is triggered.
+            DualityEditorApp.Terminating += Plugin_Terminating; // Called when the editor is being terminated.
+        }
+        private void LoadGitData() // Load our git user data into a local variable.
+        {
+            this.isLoading = true;
+            this.UserData = Formatter.TryReadObject<GitUserData>(this.userDataPath) ?? new GitUserData();
+            this.isLoading = false;
+        }
+        private void SaveGitData() // Save our git user data into a file.
+        {
+            Formatter.WriteObject(this.userData, this.userDataPath, FormattingMethod.Xml);
+        }
+        // Commit the changes made in the working directory.
+        private void CommitChanges()
         {
             if (this.isRepoInit) // Check if the repository has been initialized successfully
             {
@@ -156,98 +176,86 @@ namespace RockyTV.Duality.GitPlugin
                     sb.AppendLine();
 
                     // Setup the commit author
-                    Signature author = null;
-                    if (this.authorName != null && this.authorEmail != null)
-                    {
-                        author = new Signature(this.authorName, this.authorEmail, DateTime.Now);
-                    }
-                    else
-                    {
-                        author = new Signature("John Doe", "john.doe@example.com", DateTime.Now);
-                    }
+                    Signature author = new Signature(this.userData.AuthorName, this.userData.AuthorEmail, DateTime.UtcNow);
 
                     // Try to commit. If it throws, we log it.
                     try
                     {
-                        Write("Committing changes...");
-                        Commit commit = repo.Commit(string.Join(@"\r\n", sb.ToString()), author);
+                        Logger.Debug("Committing changes...");
+                        Commit commit = repo.Commit(sb.ToString(), author);
                     }
                     catch (EmptyCommitException)
                     {
-                        WriteWarning("Nothing changed. Skipping commit.");
+                        Logger.Debug("Nothing changed. Skipping commit.");
                     }
                     catch (Exception e)
                     {
-                        WriteError("Error while committing: {0}", e.Message);
+                        Logger.LogError("Error while committing: {0}", e.Message);
                     }
                 }
-
-                // Finally, we save our data.
-                if (this.gitSettings != null)
+            }
+        }
+        private void Plugin_EditorIdling(object sender, EventArgs e)
+        {
+            if (this.userData.CommitSettings == CommitTrigger.Automatically)
+            {
+                TimeSpan timeSinceLastCommit = DateTime.UtcNow - this.lastCommitTime;
+                CommitFrequency frequency = this.userData.CommitFrequency;
+                if (frequency == CommitFrequency.FiveMinutes && timeSinceLastCommit.TotalMinutes > 5 ||
+                    frequency == CommitFrequency.FifteenMinutes && timeSinceLastCommit.TotalMinutes > 15 ||
+                    frequency == CommitFrequency.ThirtyMinutes && timeSinceLastCommit.TotalMinutes > 30 ||
+                    frequency == CommitFrequency.OneHour && timeSinceLastCommit.TotalMinutes > 60)
                 {
-                    XElement gitElem = new XElement("GitPlugin_0");
-                    node.Add(gitElem);
-                    this.gitSettings.SaveUserData(gitElem);
+                    this.CommitChanges();
+                    this.lastCommitTime = DateTime.UtcNow;
                 }
             }
         }
-        // This method here requests a new SettingsWindow.
-        public SettingsWindow RequestGitSettings()
+        private void Plugin_Terminating(object sender, EventArgs e)
         {
-            if (this.gitSettings == null || this.gitSettings.IsDisposed)
+            this.SaveGitData();
+
+            if (this.userData.CommitSettings == CommitTrigger.EditorLeaving)
             {
-                this.gitSettings = new SettingsWindow();
-                this.gitSettings.FormClosed += delegate(object sender, FormClosedEventArgs e) { this.gitSettings = null; };
+                this.CommitChanges();
             }
 
-            if (!this.isLoading)
-            {
-                this.gitSettings.Show(DualityEditorApp.MainForm.MainDockPanel);
-                if (this.gitSettings.Pane != null)
-                {
-                    this.gitSettings.Pane.Activate();
-                    this.gitSettings.Focus();
-                }
-            }
-
-            return this.gitSettings;
+            DualityEditorApp.EditorIdling -= Plugin_EditorIdling;
+            DualityEditorApp.SaveAllTriggered -= Plugin_SaveAllTriggered;
+            DualityEditorApp.Terminating -= Plugin_Terminating;
         }
-        /// <summary>
-        /// Pass our <see cref="SettingsWindow.cs"/> settings to <see cref="GitPlugin.cs"/>.
-        /// Defines the author name and email of the commits.
-        /// </summary>
-        /// <param name="name">The name of the author you want to show on commits.</param>
-        /// <param name="email">The email of the author you want to show on commits.</param>
-        public void SetGitSettings(string name, string email)
+
+        private void Plugin_SaveAllTriggered(object sender, EventArgs e)
         {
-            this.authorEmail = email;
-            this.authorName = name;
+            Logger.Debug("SaveAll was triggered, saving our data.");
+            this.SaveGitData();
         }
-
-        private void menuItemGitSettings_Click(object sender, EventArgs e)
-        {
-            this.RequestGitSettings();
-        }
-
         #region Log
-        private static void Write(string msg, params object[] obj)
+        private static class Logger
         {
-            string message = string.Format("[GitPlugin] {0}", msg);
-            Log.Editor.Write(message, obj);
-        }
-        private static void WriteWarning(string msg, params object[] obj)
-        {
-            string message = string.Format("[GitPlugin] {0}", msg);
-            Log.Editor.WriteWarning(message, obj);
-        }
-        private static void WriteError(string msg, params object[] obj)
-        {
-            string message = string.Format("[GitPlugin] {0}", msg);
-            Log.Editor.WriteError(message, obj);
+            public static void Debug(string msg, params object[] obj)
+            {
+                string message = string.Format("[DEBUG][GitPlugin] {0}", msg);
+                Log.Editor.WriteWarning(message, obj);
+            }
+            public static void LogNormal(string msg, params object[] obj)
+            {
+                string message = string.Format("[GitPlugin] {0}", msg);
+                Log.Editor.Write(message, obj);
+            }
+            public static void LogWarning(string msg, params object[] obj)
+            {
+                string message = string.Format("[GitPlugin] {0}", msg);
+                Log.Editor.WriteWarning(message, obj);
+            }
+            public static void LogError(string msg, params object[] obj)
+            {
+                string message = string.Format("[GitPlugin] {0}", msg);
+                Log.Editor.WriteError(message, obj);
+            }
         }
         #endregion
-
-        #region GetGitIgnore()
+        #region .gitignore
         /// <summary>
         /// Generate a formatted .gitignore file.
         /// </summary>
@@ -281,7 +289,6 @@ namespace RockyTV.Duality.GitPlugin
 
             return sb.ToString();
         }
-        #endregion
 
         private void CreateGitIgnore()
         {
@@ -299,15 +306,18 @@ namespace RockyTV.Duality.GitPlugin
                 if (!File.Exists(file)) // If the file does not exist, create a new one
                 {
                     File.WriteAllText(file, this.GenerateGitIgnore(), Encoding.UTF8);
-                    Write("Created .gitignore file.");
+                    Logger.Debug("Created .gitignore file.");
                 }
                 else
-                    Write(".gitignore does exist. Skipping creation of a new one.");
+                {
+                    Logger.Debug(".gitignore does exist. Skipping creation of a new one.");
+                }
             }
             catch (Exception e)
             {
-                WriteError("Failed to create .gitignore file: {0}", e.Message);
+                Logger.LogError("Failed to create .gitignore file: {0}", e.Message);
             }
         }
+        #endregion
     }
 }
