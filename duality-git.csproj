@@ -39,21 +39,27 @@
   <ItemGroup>
     <Reference Include="AdamsLair.WinForms">
       <HintPath>packages\AdamsLair.WinForms.1.0.16.0\lib\net40-Client\AdamsLair.WinForms.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Aga.Controls">
       <HintPath>packages\AdamsLair.TreeViewAdv.1.7.2.0\lib\net20\Aga.Controls.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Duality">
       <HintPath>packages\AdamsLair.Duality.1.6.4\lib\Duality.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DualityEditor">
       <HintPath>packages\AdamsLair.Duality.Editor.1.4.0\lib\DualityEditor.exe</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="LibGit2Sharp">
+    <Reference Include="LibGit2Sharp, Version=0.21.0.176, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\LibGit2Sharp.0.21.0.176\lib\net40\LibGit2Sharp.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="NuGet.Core">
       <HintPath>packages\NuGet.Core.2.8.3\lib\net40-Client\NuGet.Core.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -65,9 +71,16 @@
     <Reference Include="System.Xml" />
     <Reference Include="WeifenLuo.WinFormsUI.Docking">
       <HintPath>packages\AdamsLair.DockPanelSuite.2.8.1.0\lib\net20\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Forms\HistoryForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\HistoryForm.Designer.cs">
+      <DependentUpon>HistoryForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="UserData.cs" />
     <Compile Include="PluginGit.cs" />
     <Compile Include="Properties\GitPluginResCache.cs" />
@@ -79,9 +92,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="nuspecs\GitPlugin.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Forms\HistoryForm.resx">
+      <DependentUpon>HistoryForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\GitPluginRes.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>GitPluginRes.Designer.cs</LastGenOutput>
@@ -94,7 +111,7 @@
     <None Include="EmbeddedResources\git.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Forms\" />
+    <Content Include="nuspecs\git.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

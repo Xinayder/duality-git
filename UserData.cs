@@ -69,6 +69,11 @@ namespace RockyTV.Duality.GitPlugin
         /// </summary>
         Automatically,
         /// <summary>
+        /// Commit when the editor saves all the files.
+        /// It is also called when the user executes the save all command.
+        /// </summary>
+        EditorSaveAll,
+        /// <summary>
         /// Commit whenever you want to commit.
         /// </summary>
         Manual

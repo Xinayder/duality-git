@@ -12,6 +12,7 @@ using Duality.Editor.Properties;
 
 using LibGit2Sharp;
 using LibGit2Sharp.Core;
+using System.Linq;
 
 using WeifenLuo.WinFormsUI.Docking;
 using AdamsLair.WinForms.ItemModels;
@@ -29,9 +30,14 @@ namespace RockyTV.Duality.GitPlugin
             get { return singleton; }
         }
 
-        private DateTime lastCommitTime = DateTime.UtcNow;
+        private bool isFirstTime = true;
+
+        private DateTime lastCommitTime = DateTime.Now;
 
         private bool isLoading = false;
+        private HistoryForm formCommitLog = null;
+
+        private Repository gitRepo = null;
 
         private string gameDirectory = null;
 
@@ -56,6 +62,17 @@ namespace RockyTV.Duality.GitPlugin
             singleton = this;
             gameDirectory = Environment.CurrentDirectory;
         }
+        protected override IDockContent DeserializeDockContent(Type dockContentType)
+        {
+            this.isLoading = true;
+            IDockContent result;
+            if (dockContentType == typeof(HistoryForm))
+                result = RequestLogForm();
+            else
+                result = base.DeserializeDockContent(dockContentType);
+            this.isLoading = false;
+            return result;
+        }
         protected override void InitPlugin(MainForm main)
         {
             base.InitPlugin(main);
@@ -66,7 +83,8 @@ namespace RockyTV.Duality.GitPlugin
             // Throws if the directory wasn't found.
             try
             {
-                Repository.Init(this.gameDirectory); // Re/initialize a Git repository on the current working directory
+                this.isFirstTime = !Repository.IsValid(this.gameDirectory);
+                this.gitRepo = new Repository(Repository.Init(this.gameDirectory)); // Re/initialize a Git repository on the current working directory
                 Logger.Debug("Initialized Git repo on '{0}'.", this.gameDirectory);
                 this.isRepoInit = true;
             }
@@ -92,11 +110,54 @@ namespace RockyTV.Duality.GitPlugin
                 Icon = GitPluginResCache.IconGit,
                 ActionHandler = this.menuItemGitSettings_Click
             });
+
+            MenuModelItem gitItem = main.MainMenu.RequestItem("Git");
+            gitItem.AddItem(new MenuModelItem
+            {
+                Name = "Commit Log",
+                Icon = null,
+                ActionHandler = this.menuItemGitLog_Click
+            });
+
+            if (this.isRepoInit)
+            {
+                if (this.isFirstTime)
+                {
+                    gitRepo.Stage("*");
+
+                    Signature commitAuthor = new Signature("Duality Git Plugin", "rockytv@gmail.com", DateTime.Now);
+                    gitRepo.Commit("Initial commit", commitAuthor);
+                }
+            }
+        }
+        public HistoryForm RequestLogForm()
+        {
+            if (this.formCommitLog == null || this.formCommitLog.IsDisposed)
+            {
+                this.formCommitLog = new HistoryForm();
+                this.formCommitLog.FormClosed += delegate(object sender, FormClosedEventArgs e) { this.formCommitLog = null; };
+            }
+
+            if (!this.isLoading)
+            {
+                this.formCommitLog.Show(DualityEditorApp.MainForm.MainDockPanel);
+                if (this.formCommitLog.Pane != null)
+                {
+                    this.formCommitLog.Pane.Activate();
+                    this.formCommitLog.Focus();
+                }
+            }
+
+            return this.formCommitLog;
         }
         private void menuItemGitSettings_Click(object sender, EventArgs e)
         {
             //this.RequestGitSettings();
             DualityEditorApp.Select(this, new ObjectSelection(new[] { this.UserData }));
+        }
+        private void menuItemGitLog_Click(object sender, EventArgs args)
+        {
+            this.RequestLogForm();
         }
         protected override void SaveUserData(XElement node)
         {
@@ -120,78 +181,71 @@ namespace RockyTV.Duality.GitPlugin
         private void SaveGitData() // Save our git user data into a file.
         {
             Formatter.WriteObject(this.userData, this.userDataPath, FormattingMethod.Xml);
+            if (this.userData.CommitSettings == CommitTrigger.EditorSaveAll) CommitChanges();
         }
         // Commit the changes made in the working directory.
         private void CommitChanges()
         {
             if (this.isRepoInit) // Check if the repository has been initialized successfully
             {
-                using (Repository repo = new Repository(gameDirectory))
+
+                // Stage all files
+                gitRepo.Stage("*");
+
+                // Setup the commit author
+                Signature author = new Signature(this.userData.AuthorName, this.userData.AuthorEmail, DateTime.Now);
+                Commit currCommit = null;
+                try
                 {
+                    currCommit = gitRepo.Commit("Temporary commit message", author);
+                }
+                catch (EmptyCommitException e) { } // Commit is null, do nothing instead
+
+                if (currCommit != null)
+                {
+                    // Write our commit message
                     StringBuilder sb = new StringBuilder();
 
-                    // Loop through each file of each directory under our repository
-                    foreach (string file in Directory.GetFiles(this.gameDirectory, "*", SearchOption.AllDirectories))
-                    {
-                        // Get the status for our file
-                        FileStatus status = repo.RetrieveStatus(file);
+                    Tree commitTree = gitRepo.Head.Tip.Tree;
+                    Tree parentCommitTree = gitRepo.Head.Tip.Parents.Single().Tree;
 
-                        FileStatus[] ignoreFileStatus = new FileStatus[] { 
-                            FileStatus.Ignored, FileStatus.Missing, FileStatus.Nonexistent, FileStatus.Unaltered, 
-                            FileStatus.Unreadable
+                    TreeChanges changes = gitRepo.Diff.Compare<TreeChanges>(parentCommitTree, commitTree);
+                    if (changes.Count() > 0)
+                    {
+                        string pluralFile = "file";
+                        string pluralInsertion = "insertion";
+                        string pluralDeletion = "deletion";
+                        if (changes.Count() != 1) pluralFile = "files";
+                        if (changes.Added.Count() != 1) pluralInsertion = "insertions";
+                        if (changes.Deleted.Count() != 1) pluralDeletion = "deletions";
+
+                        sb.AppendLine(string.Format("{0} {1} changed, {2} {3}(+), {4} {5}(-)",
+                            changes.Count(), pluralFile, changes.Added.Count(), pluralInsertion, changes.Deleted.Count(), pluralDeletion));
+
+                        CommitOptions commitOptions = new CommitOptions()
+                        {
+                            AmendPreviousCommit = true,
+                            AllowEmptyCommit = false,
+                            PrettifyMessage = true,
+                            CommentaryChar = '#'
                         };
 
-                        // Check if the current file status is not one of the ignored file status
-                        foreach (FileStatus ignoreStatus in ignoreFileStatus)
+                        // Try to commit. If it throws, we log it.
+                        try
                         {
-                            if (status != ignoreStatus) repo.Stage(file);
+                            Commit ammendedCommit = gitRepo.Commit(sb.ToString(), author, commitOptions);
+                            Logger.Debug("Committed changes, id: " + ammendedCommit.Sha);
                         }
-
-                        // Write to our commit message what has been altered
-                        switch (status)
+                        catch (EmptyCommitException)
                         {
-                            case FileStatus.Added:
-                                sb.AppendLine(string.Format("Added file '{0}'", file));
-                                break;
-                            case FileStatus.Removed:
-                                sb.AppendLine(string.Format("Removed file '{0}'", file));
-                                break;
-                            case FileStatus.RenamedInIndex:
-                                sb.AppendLine(string.Format("Renamed file '{0}' in index", file));
-                                break;
-                            case FileStatus.StagedTypeChange:
-                                sb.AppendLine(string.Format("Staged type change for file '{0}'", file));
-                                break;
-                            case FileStatus.Modified:
-                                sb.AppendLine(string.Format("Modified file '{0}'", file));
-                                break;
-                            case FileStatus.TypeChanged:
-                                sb.AppendLine(string.Format("Change type for file '{0}'", file));
-                                break;
-                            case FileStatus.RenamedInWorkDir:
-                                sb.AppendLine(string.Format("Renamed file '{0}' in work dir", file));
-                                break;
+                            Logger.Debug("Nothing changed. Skipping commit.");
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.LogError("Error while committing: {0}", e.Message);
                         }
                     }
-                    sb.AppendLine();
 
-                    // Setup the commit author
-                    Signature author = new Signature(this.userData.AuthorName, this.userData.AuthorEmail, DateTime.UtcNow);
-
-                    // Try to commit. If it throws, we log it.
-                    try
-                    {
-                        Logger.Debug("Committing changes...");
-                        Commit commit = repo.Commit(sb.ToString(), author);
-                    }
-                    catch (EmptyCommitException)
-                    {
-                        Logger.Debug("Nothing changed. Skipping commit.");
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.LogError("Error while committing: {0}", e.Message);
-                    }
                 }
             }
         }
@@ -199,7 +253,7 @@ namespace RockyTV.Duality.GitPlugin
         {
             if (this.userData.CommitSettings == CommitTrigger.Automatically)
             {
-                TimeSpan timeSinceLastCommit = DateTime.UtcNow - this.lastCommitTime;
+                TimeSpan timeSinceLastCommit = DateTime.Now - this.lastCommitTime;
                 CommitFrequency frequency = this.userData.CommitFrequency;
                 if (frequency == CommitFrequency.FiveMinutes && timeSinceLastCommit.TotalMinutes > 5 ||
                     frequency == CommitFrequency.FifteenMinutes && timeSinceLastCommit.TotalMinutes > 15 ||
@@ -207,7 +261,7 @@ namespace RockyTV.Duality.GitPlugin
                     frequency == CommitFrequency.OneHour && timeSinceLastCommit.TotalMinutes > 60)
                 {
                     this.CommitChanges();
-                    this.lastCommitTime = DateTime.UtcNow;
+                    this.lastCommitTime = DateTime.Now;
                 }
             }
         }
@@ -215,10 +269,9 @@ namespace RockyTV.Duality.GitPlugin
         {
             this.SaveGitData();
 
-            if (this.userData.CommitSettings == CommitTrigger.EditorLeaving)
-            {
-                this.CommitChanges();
-            }
+            if (this.userData.CommitSettings == CommitTrigger.EditorLeaving) this.CommitChanges();
+
+            gitRepo.Dispose();
 
             DualityEditorApp.EditorIdling -= Plugin_EditorIdling;
             DualityEditorApp.SaveAllTriggered -= Plugin_SaveAllTriggered;
@@ -229,6 +282,15 @@ namespace RockyTV.Duality.GitPlugin
         {
             Logger.Debug("SaveAll was triggered, saving our data.");
             this.SaveGitData();
+        }
+
+        public IQueryableCommitLog RequestHistory()
+        {
+            if (this.isRepoInit)
+            {
+                return gitRepo.Commits;
+            }
+            return null;
         }
         #region Log
         private static class Logger
@@ -280,6 +342,7 @@ namespace RockyTV.Duality.GitPlugin
             sb.AppendLine("*.csproj.user");
             sb.AppendLine("*.suo");
             sb.AppendLine("AppData.dat");
+            sb.AppendLine("DualityEditor.exe");
             sb.AppendLine("EditorUserData.xml");
             sb.AppendLine("logfile.txt");
             sb.AppendLine("logfile_editor.txt");
