@@ -82,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="EmbeddedResources\" />
+    <Folder Include="nuspecs\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
