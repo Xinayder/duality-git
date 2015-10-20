@@ -46,6 +46,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AdamsLair.WinForms">
+      <HintPath>..\..\..\AdamsLair.WinForms.dll</HintPath>
+    </Reference>
     <Reference Include="Duality">
       <HintPath>..\..\..\Duality.dll</HintPath>
     </Reference>
@@ -71,10 +74,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="EditorPlugin.cs" />
+    <Compile Include="PluginUserData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="EmbeddedResources\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

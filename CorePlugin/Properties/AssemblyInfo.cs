@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // Allgemeine Informationen über eine Assembly werden über die folgenden 
 // Attribute gesteuert. Ändern Sie diese Attributwerte, um die Informationen zu ändern,
 // die mit einer Assembly verknüpft sind.
-[assembly: AssemblyTitle("GamePlugin")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("RockyTV's Git Plugin (Core)")]
+[assembly: AssemblyDescription("Git integration plugin for Duality.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("GamePlugin")]
-[assembly: AssemblyCopyright("")]
+[assembly: AssemblyCompany("Alexandre Oliveira")]
+[assembly: AssemblyProduct("GitPlugin.core")]
+[assembly: AssemblyCopyright("Copyright © Alexandre Oliveira 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
