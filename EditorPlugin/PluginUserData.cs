@@ -5,7 +5,17 @@ namespace RockyTV.GitPlugin.Editor
 	/// Defines a persistent class used for saving user data.
 	public class PluginUserData
 	{
-		private string authorName = "John Doe";
+		private bool autoFetchConfig = true;
+		/// <summary>
+		/// Automatically retrieve author name and email from global git settings.
+		/// </summary>
+		public bool AutoFetchConfig
+		{
+			get { return autoFetchConfig; }
+			set { autoFetchConfig = value; }
+		}
+
+		private string authorName = string.Empty;
 		/// <summary>
 		/// Author information.
 		/// Specify the name of the author that is shown in the commit history.
@@ -16,7 +26,7 @@ namespace RockyTV.GitPlugin.Editor
 			set { authorName = value; }
 		}
 
-		private string authorEmail = "john.doe@example.com";
+		private string authorEmail = string.Empty;
 		/// <summary>
 		/// Author information.
 		/// Specify the email of the author that is shown in the commit history. 
