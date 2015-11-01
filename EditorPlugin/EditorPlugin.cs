@@ -9,6 +9,10 @@ using Duality.Editor.Forms;
 using AdamsLair.WinForms.ItemModels;
 using Duality.Serialization;
 
+using LibGit2Sharp;
+using LibGit2Sharp.Core;
+using System.Xml.Linq;
+
 namespace RockyTV.GitPlugin.Editor
 {
 	/// <summary>
@@ -17,9 +21,8 @@ namespace RockyTV.GitPlugin.Editor
     public class DualityGitEditorPlugin : EditorPlugin
 	{
 		private bool isLoading = false;
-		private string userDataPath = PathOp.Combine(Environment.CurrentDirectory, "GitSettings.dat");
 
-		private PluginUserData userData = null;
+		private PluginUserData userData = new PluginUserData();
 		public PluginUserData UserData
 		{
 			get { return userData; }
@@ -35,7 +38,15 @@ namespace RockyTV.GitPlugin.Editor
 		{
 			base.InitPlugin(main);
 
-			this.LoadGitData();
+			// Auto retrieve git user info from global .gitconfig file
+			if (userData.AutoFetchConfig && string.IsNullOrEmpty(userData.AuthorName) && string.IsNullOrEmpty(userData.AuthorEmail))
+			{
+				using (Configuration gitConfig = new Configuration(null, null, null))
+				{
+					userData.AuthorName = gitConfig.Get<string>("user.name").Value;
+					userData.AuthorEmail = gitConfig.Get<string>("user.email").Value;
+				}
+			}
 
 			// Request menu
 			MenuModelItem viewItem = main.MainMenu.RequestItem(GeneralRes.MenuName_Settings);
@@ -51,16 +62,32 @@ namespace RockyTV.GitPlugin.Editor
 			DualityEditorApp.Select(this, new ObjectSelection(new[] { this.UserData }));
 		}
 
-		private void LoadGitData()
+		protected override void LoadUserData(XElement node)
 		{
-			this.isLoading = true;
-			this.userData = Serializer.TryReadObject<PluginUserData>(this.userDataPath) ?? new PluginUserData();
-			this.isLoading = false;
+			isLoading = true;
+
+			bool tryParseBool;
+			if (node.GetElementValue("autoFetchConfig", out tryParseBool))
+				userData.AutoFetchConfig = tryParseBool;
+
+			XElement gitElem = node.Element("user");
+			if (gitElem != null)
+			{
+				userData.AuthorName = gitElem.GetElementValue("name");
+				userData.AuthorEmail = gitElem.GetElementValue("email");
+			}
+
+			isLoading = false;
 		}
 
-		private void SaveGitData()
+		protected override void SaveUserData(XElement node)
 		{
-			Serializer.WriteObject(this.userData, this.userDataPath, typeof(XmlSerializer));
+			node.SetElementValue("autoFetchConfig", userData.AutoFetchConfig);
+
+			XElement gitElem = new XElement("user");
+			gitElem.SetElementValue("name", userData.AuthorName);
+			gitElem.SetElementValue("email", userData.AuthorEmail);
+			node.Add(gitElem);
 		}
 	}
 }
