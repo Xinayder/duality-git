@@ -21,6 +21,9 @@ namespace RockyTV.GitPlugin.Editor
     public class DualityGitEditorPlugin : EditorPlugin
 	{
 		private bool isLoading = false;
+		private bool isFirstTime = true;
+		private bool isRepoInit = false;
+		private Repository gitRepo = null;
 
 		private PluginUserData userData = new PluginUserData();
 		public PluginUserData UserData
@@ -38,13 +41,50 @@ namespace RockyTV.GitPlugin.Editor
 		{
 			base.InitPlugin(main);
 
-			// Auto retrieve git user info from global .gitconfig file
-			if (userData.AutoFetchConfig && string.IsNullOrEmpty(userData.AuthorName) && string.IsNullOrEmpty(userData.AuthorEmail))
+			try
 			{
-				using (Configuration gitConfig = new Configuration(null, null, null))
+				isFirstTime = !Repository.IsValid(Environment.CurrentDirectory);
+				gitRepo = new Repository(Repository.Init(Environment.CurrentDirectory));
+				Log.Editor.Write("Initialized git repository on '" + Environment.CurrentDirectory + "'");
+				isRepoInit = true;
+			}
+			catch (Exception e)
+			{
+				Log.Editor.WriteError("Failed to initialize repository on '" + Environment.CurrentDirectory + "'");
+				Log.Editor.WriteError(e.Message);
+			}
+
+			// Auto retrieve git user info from global .gitconfig file
+			// We set userData.AuthorName and .AuthorEmail to the git value files if both fields are null/empty
+			if (string.IsNullOrEmpty(userData.AuthorName) && string.IsNullOrEmpty(userData.AuthorEmail))
+			{
+				if (userData.AutoFetchConfig)
 				{
-					userData.AuthorName = gitConfig.Get<string>("user.name").Value;
-					userData.AuthorEmail = gitConfig.Get<string>("user.email").Value;
+					using (Configuration gitConfig = new Configuration(null, null, null))
+					{
+						userData.AuthorName = gitConfig.Get<string>("user.name").Value;
+						userData.AuthorEmail = gitConfig.Get<string>("user.email").Value;
+					}
+				}
+			}
+
+			// Check if the repository is initialized to set author config for repository
+			if (isRepoInit && !userData.AutoFetchConfig)
+			{
+				using (Configuration config = gitRepo.Config)
+				{
+					string authorName = "John Doe";
+					string authorEmail = "john.doe@example.com";
+
+					// We want to update our author info according to the user data, so when a field changes, we change it on our repo config
+					if (!string.IsNullOrEmpty(userData.AuthorName) || !string.IsNullOrEmpty(userData.AuthorEmail))
+					{
+						authorName = userData.AuthorName;
+						authorEmail = userData.AuthorEmail;
+					}
+
+					config.Set("user.name", authorName);
+					config.Set("user.email", authorEmail);
 				}
 			}
 
