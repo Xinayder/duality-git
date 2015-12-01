@@ -54,6 +54,8 @@
 			// 
 			// textBoxMessage
 			// 
+			this.textBoxMessage.AcceptsReturn = true;
+			this.textBoxMessage.AcceptsTab = true;
 			this.textBoxMessage.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
@@ -97,7 +99,7 @@
 			this.labelDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.labelDesc.Location = new System.Drawing.Point(12, 0);
 			this.labelDesc.Name = "labelDesc";
-			this.labelDesc.Size = new System.Drawing.Size(235, 21);
+			this.labelDesc.Size = new System.Drawing.Size(235, 20);
 			this.labelDesc.TabIndex = 4;
 			this.labelDesc.Text = "Choose which files to stage for commit";
 			this.labelDesc.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -115,7 +117,9 @@
 			this.Controls.Add(this.buttonCancel);
 			this.Controls.Add(this.textBoxMessage);
 			this.Controls.Add(this.fileTreeView);
+			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
 			this.MaximizeBox = false;
+			this.MaximumSize = new System.Drawing.Size(430, 430);
 			this.MinimizeBox = false;
 			this.MinimumSize = new System.Drawing.Size(430, 430);
 			this.Name = "CommitDialog";
