@@ -243,7 +243,7 @@ namespace RockyTV.GitPlugin.Editor
 
 						}
 
-						Signature author = new Signature(userData.AuthorName, userData.AuthorEmail, DateTime.UtcNow);
+						Signature author = new Signature(userData.AuthorName, userData.AuthorEmail, DateTime.Now);
 
 						try
 						{
