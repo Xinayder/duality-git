@@ -30,7 +30,7 @@ namespace RockyTV.GitPlugin.Editor
 		private bool isLoading = false;
 		private bool isFirstTime = true;
 		private bool isRepoInit = false;
-		private Repository gitRepo = null;
+		public Repository gitRepo = null;
 
 		private CommitDialog commitDialog = null;
 		private DialogResult dialogResult = DialogResult.None;
@@ -64,15 +64,17 @@ namespace RockyTV.GitPlugin.Editor
 				Log.Exception(e);
 			}
 
-			try
+			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, ".gitignore")))
 			{
-				if (!File.Exists(Path.Combine(Environment.CurrentDirectory, ".gitignore")))
+				try
+				{
 					File.WriteAllText(Path.Combine(Environment.CurrentDirectory, ".gitignore"), GenerateGitIgnore());
-			}
-			catch (Exception e)
-			{
-				Log.Editor.WriteError("Failed to create .gitignore file:");
-				Log.Exception(e);
+				}
+				catch (Exception e)
+				{
+					Log.Editor.WriteError("Failed to create .gitignore file:");
+					Log.Exception(e);
+				}
 			}
 
 			// Auto retrieve git user info from global .gitconfig file
@@ -120,7 +122,7 @@ namespace RockyTV.GitPlugin.Editor
 			gitItem.SortValue = MenuModelItem.SortValue_Bottom;
 			gitItem.AddItem(new MenuModelItem
 			{
-				Name = "User Data",
+				Name = "Settings",
 				ActionHandler = menuItemGitSettings_Click
 			});
 			gitItem.AddItem(new MenuModelItem
@@ -236,11 +238,11 @@ namespace RockyTV.GitPlugin.Editor
 								FileAttributes attr = File.GetAttributes(file);
 								// Only stage files
 								if (!attr.HasFlag(FileAttributes.Directory))
+								{
 									gitRepo.Stage(file);
-
-								stagedFiles.Add(file);
+									stagedFiles.Add(file);
+								}
 							}
-
 						}
 
 						Signature author = new Signature(userData.AuthorName, userData.AuthorEmail, DateTime.Now);

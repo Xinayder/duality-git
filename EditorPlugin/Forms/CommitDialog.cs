@@ -170,9 +170,9 @@ namespace RockyTV.GitPlugin.Editor.Forms
 
 		private void AddCheckedNodesToList(TreeNode treeNode)
 		{
-			if (objectsList.Count > 0)
+			if (treeNode.Checked)
 			{
-				if (treeNode.Checked)
+				if (objectsList.Count > 0)
 				{
 					Log.Editor.WriteWarning("Checked node: {0} ({1})", treeNode.Name, treeNode.FullPath);
 					foreach (KeyValuePair<string, string> kvp in objectsList)
@@ -194,17 +194,17 @@ namespace RockyTV.GitPlugin.Editor.Forms
 								if (!StagedFilesList.Contains(kvp.Key))
 								{
 									StagedFilesList.Add(kvp.Key);
-									Log.Editor.Write("Added '{0}' to list", kvp.Key);
+									Log.Editor.WriteWarning("Added '{0}' to list", kvp.Key);
 								}
 							}
 						}
 					}
 				}
+			}
 
-				foreach (TreeNode node in treeNode.Nodes)
-				{
-					AddCheckedNodesToList(node);
-				}
+			foreach (TreeNode node in treeNode.Nodes)
+			{
+				AddCheckedNodesToList(node);
 			}
 		}
 

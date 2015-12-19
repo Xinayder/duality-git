@@ -119,10 +119,10 @@
     <None Include="Resources\folder.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="EmbeddedResources\folder.ico" />
+    <EmbeddedResource Include="EmbeddedResources\folder.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="EmbeddedResources\page_white.ico" />
+    <EmbeddedResource Include="EmbeddedResources\page_white.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
