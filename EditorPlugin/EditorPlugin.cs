@@ -14,6 +14,8 @@ using LibGit2Sharp.Core;
 using System.Xml.Linq;
 
 using RockyTV.GitPlugin.Editor.Forms;
+using RockyTV.GitPlugin.Editor.Properties;
+
 using System.Windows.Forms;
 using System.Text;
 using System.IO;
@@ -125,12 +127,12 @@ namespace RockyTV.GitPlugin.Editor
 			gitItem.SortValue = MenuModelItem.SortValue_Bottom;
 			gitItem.AddItem(new MenuModelItem
 			{
-				Name = "Settings",
+				Name = GitRes.MenuItemName_GitSettings,
 				ActionHandler = menuItemGitSettings_Click
 			});
 			gitItem.AddItem(new MenuModelItem
 			{
-				Name = "Commit",
+				Name = GitRes.MenuItemName_GitCommit,
 				ActionHandler = menuItemCommit_Click,
 				ShortcutKeys = Keys.Control | Keys.T,
 			});

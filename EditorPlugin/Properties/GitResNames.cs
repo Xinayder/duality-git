@@ -10,9 +10,9 @@ namespace RockyTV.GitPlugin.Editor.Properties
 	/// </summary>
 	public static class GitResNames
 	{
-		private const string ManifestBaseName = "RockyTV.GitPlugin.Editor";
+		private const string ManifestBaseName = "RockyTV.GitPlugin.Editor.EmbeddedResources.";
 
-		public const string ImageFolder = ManifestBaseName + "folder.png";
-		public const string ImageFile = ManifestBaseName + "page_white.png";
+		public const string ImageFolder = ManifestBaseName + "Folder.png";
+		public const string ImageFile = ManifestBaseName + "PageWhite.png";
 	}
 }

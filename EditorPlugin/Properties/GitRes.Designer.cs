@@ -61,22 +61,20 @@ namespace RockyTV.GitPlugin.Editor.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        ///   Looks up a localized string similar to Commit.
         /// </summary>
-        internal static System.Drawing.Icon folder {
+        internal static string MenuItemName_GitCommit {
             get {
-                object obj = ResourceManager.GetObject("folder", resourceCulture);
-                return ((System.Drawing.Icon)(obj));
+                return ResourceManager.GetString("MenuItemName_GitCommit", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Icon similar to (Icon).
+        ///   Looks up a localized string similar to Settings.
         /// </summary>
-        internal static System.Drawing.Icon page_white {
+        internal static string MenuItemName_GitSettings {
             get {
-                object obj = ResourceManager.GetObject("page_white", resourceCulture);
-                return ((System.Drawing.Icon)(obj));
+                return ResourceManager.GetString("MenuItemName_GitSettings", resourceCulture);
             }
         }
     }

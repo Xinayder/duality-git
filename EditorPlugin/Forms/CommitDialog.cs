@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Reflection;
 
 using LibGit2Sharp;
 using LibGit2Sharp.Core;
@@ -38,8 +39,8 @@ namespace RockyTV.GitPlugin.Editor.Forms
 		private void ListDirectoryFiles(TreeView treeView, string path)
 		{
 			ImageList treeImageList = new ImageList();
-			treeImageList.Images.Add("Folder", GitRes.folder);
-			treeImageList.Images.Add("File", GitRes.page_white);
+			treeImageList.Images.Add("Folder", Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(GitResNames.ImageFolder)));
+			treeImageList.Images.Add("File", Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(GitResNames.ImageFile)));
 			treeImageList.TransparentColor = Color.Transparent;
 			treeImageList.ColorDepth = ColorDepth.Depth32Bit;
 			treeView.ImageList = treeImageList;

@@ -12,16 +12,16 @@
     <description>A Duality plugin which turns your current game directory into a Git repository.</description>
     <tags>Duality EditorPlugin Git SourceControl Source Control</tags>
     <releaseNotes>
-        - Ported plugin to Duality 2.0
-        - Refactored plugin code
-        - Removed commit triggers
-        - Allow user to manually commit changes
-        - Allow user to write a custom commit message
+        * Ported plugin to Duality 2.0
+        * Refactored plugin code
+        * Removed commit triggers
+        * Allow user to manually commit changes
+        * Allow user to write a custom commit message
+        * Retrieve author data from global .gitconfig file
     </releaseNotes>
     <dependencies>
-        <dependency id="AdamsLair.Duality" version="2.0.0" />
-        <dependency id="AdamsLair.Duality.Editor" version="2.0.0" />
-        <dependency id="AdamsLair.WinForms" version="1.0.16" />
+        <dependency id="AdamsLair.Duality" version="2.1.0" />
+        <dependency id="AdamsLair.Duality.Editor" version="2.1.0" />
         <dependency id="LibGit2Sharp" version="0.21.0.176" />
     </dependencies>
   </metadata>
