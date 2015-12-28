@@ -49,15 +49,19 @@
   <ItemGroup>
     <Reference Include="AdamsLair.WinForms">
       <HintPath>..\..\..\AdamsLair.WinForms.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Duality">
       <HintPath>..\..\..\Duality.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DualityPrimitives">
       <HintPath>..\..\..\DualityPrimitives.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="DualityEditor">
       <HintPath>..\..\..\DualityEditor.exe</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="LibGit2Sharp, Version=0.21.0.176, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\LibGit2Sharp.0.21.0.176\lib\net40\LibGit2Sharp.dll</HintPath>
@@ -71,9 +75,11 @@
     <Reference Include="System.Xml" />
     <Reference Include="WeifenLuo.WinFormsUI.Docking">
       <HintPath>..\..\..\WeifenLuo.WinFormsUI.Docking.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Aga.Controls">
       <HintPath>..\..\..\Aga.Controls.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
