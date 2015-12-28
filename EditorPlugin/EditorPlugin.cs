@@ -235,13 +235,8 @@ namespace RockyTV.GitPlugin.Editor
 						{
 							if (!stagedFiles.Contains(file))
 							{
-								FileAttributes attr = File.GetAttributes(file);
-								// Only stage files
-								if (!attr.HasFlag(FileAttributes.Directory))
-								{
-									gitRepo.Stage(file);
-									stagedFiles.Add(file);
-								}
+								gitRepo.Stage(file);
+								stagedFiles.Add(file);
 							}
 						}
 
