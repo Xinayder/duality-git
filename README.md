@@ -27,4 +27,5 @@ See [Contributing](https://github.com/RockyTV/duality-git/wiki/Frequently-Asked-
 - [Duality](https://github.com/AdamsLair/duality), licensed under the [MIT License](https://github.com/AdamsLair/duality/blob/master/LICENSE)
 
 #### Graphical Assets
-- 'Git Logo' created by [Jason Long](http://twitter.com/jasonlong), licensed under the [Creative Commons Attribution 3.0 Unported License](http://creativecommons.org/licenses/by/3.0/).
+- 'Git Logo' created by [Jason Long](http://twitter.com/jasonlong)
+- '[Silk Icons](http://famfamfam.com/lab/icons/silk/)' created by [Mark James](https://twitter.com/markjames)
