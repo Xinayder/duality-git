@@ -31,7 +31,6 @@ namespace RockyTV.GitPlugin.Editor.Forms
 			PopulateTreeView();
 		}
 
-		private Dictionary<string, string> objectsList = new Dictionary<string, string>();
 		public List<string> StagedFilesList = new List<string>();
 		public string CommitMessage = string.Empty;
 		public CommitOptions CommitOptions = new CommitOptions();
@@ -58,6 +57,7 @@ namespace RockyTV.GitPlugin.Editor.Forms
 			directoryNode.ImageKey = "Folder";
 			directoryNode.SelectedImageKey = "Folder";
 			directoryNode.Name = directoryInfo.Name;
+			directoryNode.Tag = directoryInfo.FullName;
 			if (expanded)
 				directoryNode.Expand();
 
@@ -80,6 +80,7 @@ namespace RockyTV.GitPlugin.Editor.Forms
 					fileNode.Name = file.Name;
 					fileNode.ImageKey = "File";
 					fileNode.SelectedImageKey = "File";
+					fileNode.Tag = file.FullName;
 
 					directoryNode.Nodes.Add(fileNode);
 				}
@@ -88,57 +89,9 @@ namespace RockyTV.GitPlugin.Editor.Forms
 			return directoryNode;
 		}
 
-		private void AddFilesToDictionary(Dictionary<string, string> dictionary, string path)
-		{
-			dictionary.Clear();
-
-			DirectoryInfo rootDirectoryInfo = new DirectoryInfo(path);
-
-			dictionary.AddRange(AddDirectoryToDictionary(rootDirectoryInfo));
-		}
-
-		private static List<KeyValuePair<string, string>> AddDirectoryToDictionary(DirectoryInfo directoryInfo)
-		{
-			List<KeyValuePair<string, string>> directoryPair = new List<KeyValuePair<string, string>>();
-			directoryPair.Add(new KeyValuePair<string, string>(directoryInfo.FullName, directoryInfo.Name));
-
-			foreach (DirectoryInfo directory in directoryInfo.GetDirectories())
-			{
-				string[] invalidNames = { ".git", Path.Combine(Environment.CurrentDirectory, "Source", "Packages"), Path.Combine(Environment.CurrentDirectory, "Source", "Code", ".vs"),
-					Path.Combine(Environment.CurrentDirectory, "Source", "Code", "EditorPlugin", "obj"), Path.Combine(Environment.CurrentDirectory, "Source", "Code", "EditorPlugin", "bin"),
-					Path.Combine(Environment.CurrentDirectory, "Source", "Code", "CorePlugin", "obj"), Path.Combine(Environment.CurrentDirectory, "Source", "Code", "CorePlugin", "bin"),
-					Path.Combine(Environment.CurrentDirectory, "Backup")
-				};
-
-				// Check if the directory does not contain any of the invalid paths above
-				if (!invalidNames.Any(name => directory.FullName.Contains(name)))
-					// Check if the directory has any files, if it has, we display it
-					if (directory.GetFiles("*", SearchOption.AllDirectories).Count() > 0)
-						directoryPair.AddRange(AddDirectoryToDictionary(directory));
-			}
-
-			foreach (FileInfo file in directoryInfo.GetFiles())
-			{
-				if (!(file.Extension == ".suo" || file.Extension == ".csproj.user" || file.Name == "AppData.dat" || file.Name == "logfile.txt" ||
-					file.Name == "logfile_editor.txt" || file.Name == "perflog.txt" || file.Name == "perflog_editor.txt" || file.Name == "DualityEditor.exe" ||
-					file.Name == "EditorUserData.xml"))
-				{
-					directoryPair.Add(new KeyValuePair<string, string>(file.FullName, file.Name));
-				}
-			}
-
-			return directoryPair;
-		}
-
-		private void PopulateTreeViewFromDictionary(Dictionary<string, string> dictionary, TreeView treeView)
-		{
-			ListDirectoryFiles(treeView, dictionary.ElementAt(0).Key);
-		}
-
 		private void PopulateTreeView()
 		{
-			AddFilesToDictionary(objectsList, Environment.CurrentDirectory);
-			PopulateTreeViewFromDictionary(objectsList, fileTreeView);
+			ListDirectoryFiles(fileTreeView, Environment.CurrentDirectory);
 		}
 
 		private void buttonCommit_Click(object sender, EventArgs e)
