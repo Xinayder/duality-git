@@ -108,7 +108,7 @@ namespace RockyTV.GitPlugin.Editor.Forms
 				CommitOptions = commitOptions;
 				CommitMessage = textBoxMessage.Text;
 
-				AddCheckedNodesToList(fileTreeView.TopNode);
+				AddCheckedNodesToList();
 
 				DialogResult = DialogResult.OK;
 				Close();
@@ -121,43 +121,36 @@ namespace RockyTV.GitPlugin.Editor.Forms
 			Close();
 		}
 
+		private void AddCheckedNodesToList()
+		{
+			foreach (TreeNode treeNode in fileTreeView.Nodes)
+			{
+				AddCheckedNodesToList(treeNode);
+			}
+		}
+
 		private void AddCheckedNodesToList(TreeNode treeNode)
 		{
+			if (treeNode.Nodes.Count > 0)
+				foreach (TreeNode node in treeNode.Nodes)
+					AddCheckedNodesToList(node);
+
 			if (treeNode.Checked)
 			{
-				if (objectsList.Count > 0)
+				string fullFilePath = treeNode.Tag.ToString();
+				FileAttributes fileAttr = File.GetAttributes(fullFilePath);
+
+				// Do not add directories to the staged files list.
+				// Git does not stage directories.
+				if (!fileAttr.HasFlag(FileAttributes.Directory))
 				{
 					Log.Editor.WriteWarning("Checked node: {0} ({1})", treeNode.Name, treeNode.FullPath);
-					foreach (KeyValuePair<string, string> kvp in objectsList)
+					if (!StagedFilesList.Contains(fullFilePath))
 					{
-						if (treeNode.Name == kvp.Value)
-						{
-							if (treeNode == fileTreeView.TopNode)
-								continue;
-
-							string currentDir = Environment.CurrentDirectory;
-
-							string fullFilePath = Path.Combine(
-								currentDir.Substring(0, currentDir.IndexOf(fileTreeView.TopNode.Name)),
-								treeNode.FullPath
-								);
-
-							if (fullFilePath == kvp.Key)
-							{
-								if (!StagedFilesList.Contains(kvp.Key))
-								{
-									StagedFilesList.Add(kvp.Key);
-									Log.Editor.WriteWarning("Added '{0}' to list", kvp.Key);
-								}
-							}
-						}
+						StagedFilesList.Add(fullFilePath);
+						Log.Editor.WriteWarning("Added '{0}' to list", fullFilePath);
 					}
 				}
-			}
-
-			foreach (TreeNode node in treeNode.Nodes)
-			{
-				AddCheckedNodesToList(node);
 			}
 		}
 
