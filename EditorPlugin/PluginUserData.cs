@@ -36,5 +36,16 @@ namespace RockyTV.GitPlugin.Editor
 			get { return authorEmail; }
 			set { authorEmail = value; }
 		}
+
+		private bool usefulLogMessages = true;
+		/// <summary>
+		/// Specify whether to print messages like "nothing to commit" to output.
+		/// This does not apply to exceptions.
+		/// </summary>
+		public bool UsefulLogMessages
+		{
+			get { return usefulLogMessages; }
+			set { usefulLogMessages = value; }
+		}
 	}
 }

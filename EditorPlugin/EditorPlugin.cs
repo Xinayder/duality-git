@@ -51,6 +51,7 @@ namespace RockyTV.GitPlugin.Editor
 		{
 			base.InitPlugin(main);
 
+			// Try to initialize our git repository
 			try
 			{
 				isFirstTime = !Repository.IsValid(Environment.CurrentDirectory);
@@ -64,6 +65,7 @@ namespace RockyTV.GitPlugin.Editor
 				Log.Exception(e);
 			}
 
+			// Check if .gitignore exists. If it doesn't, create a new one.
 			if (!File.Exists(Path.Combine(Environment.CurrentDirectory, ".gitignore")))
 			{
 				try
@@ -111,6 +113,7 @@ namespace RockyTV.GitPlugin.Editor
 				}
 			}
 
+			// If this is the first run, create an initial commit by staging .gitignore
 			if (isFirstTime && File.Exists(Path.Combine(Environment.CurrentDirectory, ".gitignore")))
 			{
 				gitRepo.Stage(".gitignore");
@@ -169,6 +172,8 @@ namespace RockyTV.GitPlugin.Editor
 			bool tryParseBool;
 			if (node.GetElementValue("autoFetchConfig", out tryParseBool))
 				userData.AutoFetchConfig = tryParseBool;
+			if (node.GetElementValue("usefulLogMessages", out tryParseBool))
+				userData.UsefulLogMessages = tryParseBool;
 
 			XElement gitElem = node.Element("user");
 			if (gitElem != null)
@@ -183,6 +188,7 @@ namespace RockyTV.GitPlugin.Editor
 		protected override void SaveUserData(XElement node)
 		{
 			node.SetElementValue("autoFetchConfig", userData.AutoFetchConfig);
+			node.SetElementValue("usefulLogMessages", userData.UsefulLogMessages);
 
 			XElement gitElem = new XElement("user");
 			gitElem.SetElementValue("name", userData.AuthorName);
@@ -221,7 +227,7 @@ namespace RockyTV.GitPlugin.Editor
 			return sb.ToString();
 		}
 
-		public void StageAndCommit(string commitMessage, CommitOptions commitOptions, List<string> filesToStage)
+		private void StageAndCommit(string commitMessage, CommitOptions commitOptions, List<string> filesToStage)
 		{
 			List<string> stagedFiles = new List<string>();
 
@@ -248,19 +254,20 @@ namespace RockyTV.GitPlugin.Editor
 						}
 						catch (EmptyCommitException)
 						{
-							Log.Editor.WriteWarning("No changes made; nothing to commit.");
+							LogMessage("No changes made; nothing to commit.");
 						}
 						catch (Exception e)
 						{
 							Log.Exception(e);
 						}
-						finally
-						{
-							Log.Editor.Write("Committed: {0}", commitMessage);
-						}
 					}
 				}
 			}
+		}
+		public void LogMessage(string msg, params object[] arg)
+		{
+			if (userData.UsefulLogMessages)
+				Log.Editor.Write(msg, arg);
 		}
 	}
 }

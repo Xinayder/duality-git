@@ -144,12 +144,8 @@ namespace RockyTV.GitPlugin.Editor.Forms
 				// Git does not stage directories.
 				if (!fileAttr.HasFlag(FileAttributes.Directory))
 				{
-					Log.Editor.WriteWarning("Checked node: {0} ({1})", treeNode.Name, treeNode.FullPath);
 					if (!StagedFilesList.Contains(fullFilePath))
-					{
 						StagedFilesList.Add(fullFilePath);
-						Log.Editor.WriteWarning("Added '{0}' to list", fullFilePath);
-					}
 				}
 			}
 		}
