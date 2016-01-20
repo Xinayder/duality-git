@@ -1,5 +1,5 @@
 ## RockyTV's Git Plugin
-[![NuGet](https://img.shields.io/nuget/v/Nuget.Core.svg)]()
+[![NuGet](https://img.shields.io/nuget/v/RockyTV.GitPlugin.editor.svg)]()
 
 Source control plugin for the [Duality Engine](http://duality.adamslair.net/).
 
