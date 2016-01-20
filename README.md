@@ -1,5 +1,6 @@
 ## RockyTV's Git Plugin
 [![NuGet](https://img.shields.io/nuget/v/Nuget.Core.svg)]()
+
 Source control plugin for the [Duality Engine](http://duality.adamslair.net/).
 
 It basically turns your current work directory into a Git repository, allowing users to easily revert changes they made if something went wrong.
