@@ -2,13 +2,13 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartAction>Program</StartAction>
-    <StartProgram>C:\Users\rocky\Documents\Duality\Projects\DualityGit\DualityLauncher.exe</StartProgram>
-    <StartWorkingDirectory>C:\Users\rocky\Documents\Duality\Projects\DualityGit</StartWorkingDirectory>
+    <StartProgram>$(SolutionDir)..\..\DualityLauncher.exe</StartProgram>
+    <StartWorkingDirectory>$(SolutionDir)..\..</StartWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <StartAction>Program</StartAction>
-    <StartProgram>C:\Users\rocky\Documents\Duality\Projects\DualityGit\DualityLauncher.exe</StartProgram>
-    <StartWorkingDirectory>C:\Users\rocky\Documents\Duality\Projects\DualityGit</StartWorkingDirectory>
+    <StartProgram>$(SolutionDir)..\..\DualityLauncher.exe</StartProgram>
+    <StartWorkingDirectory>$(SolutionDir)..\..</StartWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>

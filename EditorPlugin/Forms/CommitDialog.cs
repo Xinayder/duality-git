@@ -25,9 +25,11 @@ namespace RockyTV.GitPlugin.Editor.Forms
 {
 	public partial class CommitDialog : Form
 	{
-		public CommitDialog()
+		private Dictionary<string, FileStatus> FileStatuses;
+		public CommitDialog(Dictionary<string, FileStatus>statuses)
 		{
 			InitializeComponent();
+			FileStatuses = statuses;
 			Focus();
 			PopulateTreeView();
 		}
@@ -39,8 +41,17 @@ namespace RockyTV.GitPlugin.Editor.Forms
 		private void ListDirectoryFiles(TreeView treeView, string path)
 		{
 			ImageList treeImageList = new ImageList();
+
 			treeImageList.Images.Add("Folder", Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(GitResNames.ImageFolder)));
 			treeImageList.Images.Add("File", Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(GitResNames.ImageFile)));
+			treeImageList.Images.Add("Dll", Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(GitResNames.ImageFileDll)));
+			treeImageList.Images.Add("FileAdded", Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(GitResNames.ImageFileAdded)));
+			treeImageList.Images.Add("DllAdded", Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(GitResNames.ImageFileDllAdded)));
+			treeImageList.Images.Add("FileRemoved", Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(GitResNames.ImageFileRemoved)));
+			treeImageList.Images.Add("DllRemoved", Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(GitResNames.ImageFileDllRemoved)));
+			treeImageList.Images.Add("FileModified", Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(GitResNames.ImageFileModified)));
+			treeImageList.Images.Add("DllModified", Image.FromStream(Assembly.GetExecutingAssembly().GetManifestResourceStream(GitResNames.ImageFileDllModified)));
+
 			treeImageList.TransparentColor = Color.Transparent;
 			treeImageList.ColorDepth = ColorDepth.Depth32Bit;
 			treeView.ImageList = treeImageList;
@@ -52,7 +63,7 @@ namespace RockyTV.GitPlugin.Editor.Forms
 			treeView.Nodes.Add(CreateDirectoryNode(rootDirectoryInfo, true));
 		}
 
-		private static TreeNode CreateDirectoryNode(DirectoryInfo directoryInfo, bool expanded = false)
+		private TreeNode CreateDirectoryNode(DirectoryInfo directoryInfo, bool expanded = false)
 		{
 			TreeNode directoryNode = new TreeNode(directoryInfo.Name);
 			directoryNode.ImageKey = "Folder";
@@ -73,17 +84,39 @@ namespace RockyTV.GitPlugin.Editor.Forms
 
 			foreach (FileInfo file in directoryInfo.GetFiles())
 			{
-				if (!(file.Extension == ".suo" || file.Extension == ".csproj.user" || file.Name == "AppData.dat" || file.Name == "logfile.txt" ||
-					file.Name == "logfile_editor.txt" || file.Name == "perflog.txt" || file.Name == "perflog_editor.txt" || file.Name == "DualityEditor.exe" ||
-					file.Name == "EditorUserData.xml"))
+				if (FileStatuses.ContainsKey(file.FullName))
 				{
-					TreeNode fileNode = new TreeNode(file.Name);
-					fileNode.Name = file.Name;
-					fileNode.ImageKey = "File";
-					fileNode.SelectedImageKey = "File";
-					fileNode.Tag = file.FullName;
+					FileStatus status = FileStatuses[file.FullName];
+					if (status != FileStatus.Ignored)
+					{
+						TreeNode fileNode = new TreeNode(file.Name);
+						fileNode.Name = file.Name;
 
-					directoryNode.Nodes.Add(fileNode);
+						string imageKey = "File";
+						if (Path.GetExtension(file.Name).ToLower().LastIndexOf("dll") != -1) imageKey = "Dll";
+
+						switch (status)
+						{
+							case FileStatus.Untracked:
+							case FileStatus.Added:
+								imageKey += "Added";
+								break;
+							case FileStatus.Removed:
+								imageKey += "Removed";
+								break;
+							case FileStatus.Modified:
+								imageKey += "Modified";
+								break;
+							default:
+								break;
+						}
+
+						fileNode.ImageKey = imageKey;
+						fileNode.SelectedImageKey = imageKey;
+						fileNode.Tag = file.FullName;
+
+						directoryNode.Nodes.Add(fileNode);
+					}
 				}
 			}
 

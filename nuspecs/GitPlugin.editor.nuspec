@@ -2,7 +2,8 @@
 <package >
   <metadata>
     <id>RockyTV.GitPlugin.editor</id>
-    <version>1.0.0</version>
+    <title>RockyTV's Git Plugin</title>
+    <version>1.1.0</version>
     <authors>Alexandre Oliveira</authors>
     <owners>Alexandre Oliveira</owners>
     <licenseUrl>https://github.com/RockyTV/duality-git/blob/master/LICENSE</licenseUrl>
@@ -10,19 +11,19 @@
     <iconUrl>https://github.com/RockyTV/duality-git/raw/master/nuspecs/git.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A Duality plugin which turns your current game directory into a Git repository.</description>
-    <tags>Duality EditorPlugin Git SourceControl Source Control</tags>
+    <tags>Duality Git Source Control VCS</tags>
     <releaseNotes>
-        * Ported plugin to Duality 2.0
-        * Refactored plugin code
-        * Removed commit triggers
-        * Allow user to manually commit changes
-        * Allow user to write a custom commit message
-        * Retrieve author data from global .gitconfig file
+      - Updated LibGit2Sharp to 0.22.0
+      - Added new icons to reflect file status
+      - Changed ignore pattern for log files, so now it will ignore every log file
+      - Changed the timezone of the initial commit, it was using UTC before
+      - Changed icon for files
+      - Commit dialog will now only show changed files, instead of displaying the entire directory tree
     </releaseNotes>
     <dependencies>
         <dependency id="AdamsLair.Duality" version="2.1.0" />
         <dependency id="AdamsLair.Duality.Editor" version="2.1.0" />
-        <dependency id="LibGit2Sharp" version="0.21.0.176" />
+        <dependency id="LibGit2Sharp" version="0.22.0" />
     </dependencies>
   </metadata>
   <files>

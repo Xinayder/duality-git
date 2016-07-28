@@ -13,6 +13,13 @@ namespace RockyTV.GitPlugin.Editor.Properties
 		private const string ManifestBaseName = "RockyTV.GitPlugin.Editor.EmbeddedResources.";
 
 		public const string ImageFolder = ManifestBaseName + "Folder.png";
-		public const string ImageFile = ManifestBaseName + "PageWhite.png";
+		public const string ImageFile = ManifestBaseName + "Page.png";
+		public const string ImageFileDll = ManifestBaseName + "ScriptCode.png";
+		public const string ImageFileAdded = ManifestBaseName + "PageAdded.png";
+		public const string ImageFileDllAdded = ManifestBaseName + "ScriptAdded.png";
+		public const string ImageFileRemoved = ManifestBaseName + "PageRemoved.png";
+		public const string ImageFileDllRemoved = ManifestBaseName + "ScriptRemoved.png";
+		public const string ImageFileModified = ManifestBaseName + "PageModified.png";
+		public const string ImageFileDllModified = ManifestBaseName + "ScriptModified.png";
 	}
 }

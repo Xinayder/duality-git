@@ -119,7 +119,7 @@ namespace RockyTV.GitPlugin.Editor
 			if (isFirstTime && File.Exists(Path.Combine(Environment.CurrentDirectory, ".gitignore")))
 			{
 				gitRepo.Stage(".gitignore");
-				Signature author = new Signature(userData.AuthorName, userData.AuthorEmail, DateTime.UtcNow);
+				Signature author = new Signature(userData.AuthorName, userData.AuthorEmail, DateTime.Now);
 				gitRepo.Commit("Initial commit", author);
 			}
 
@@ -145,9 +145,17 @@ namespace RockyTV.GitPlugin.Editor
 
 		private CommitDialog RequestCommitDialog()
 		{
+			Dictionary<string, FileStatus> fileStatuses = new Dictionary<string, FileStatus>();
 			if (commitDialog == null || commitDialog.IsDisposed)
 			{
-				commitDialog = new CommitDialog();
+				foreach (var item in gitRepo.RetrieveStatus())
+				{
+					string fullPath = Path.Combine(Environment.CurrentDirectory, item.FilePath);
+					if (!fileStatuses.ContainsKey(fullPath))
+						fileStatuses.Add(fullPath, item.State);
+				}
+
+				commitDialog = new CommitDialog(fileStatuses);
 				commitDialog.FormClosed += delegate (object sender, FormClosedEventArgs e) 
 				{
 					StageAndCommit(commitDialog.CommitMessage, commitDialog.CommitOptions, commitDialog.StagedFilesList);
@@ -220,10 +228,12 @@ namespace RockyTV.GitPlugin.Editor
 			sb.AppendLine("AppData.dat");
 			sb.AppendLine("DualityEditor.exe");
 			sb.AppendLine("EditorUserData.xml");
-			sb.AppendLine("logfile.txt");
-			sb.AppendLine("logfile_editor.txt");
-			sb.AppendLine("perflog.txt");
-			sb.AppendLine("perflog_editor.txt");
+			sb.AppendLine("logfile*.txt");
+			//sb.AppendLine("logfile_editor.txt");
+			//sb.AppendLine("logfile_editor_prev.txt");
+			sb.AppendLine("perflog*.txt");
+			//sb.AppendLine("perflog_editor.txt");
+			//sb.AppendLine("perflog_editor_prev.txt");
 			sb.AppendLine();
 
 			return sb.ToString();
@@ -266,6 +276,7 @@ namespace RockyTV.GitPlugin.Editor
 				}
 			}
 		}
+
 		public void LogMessage(string msg, params object[] arg)
 		{
 			if (userData.UsefulLogMessages)
