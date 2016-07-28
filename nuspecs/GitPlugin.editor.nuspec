@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<package >
+<package>
   <metadata>
     <id>RockyTV.GitPlugin.editor</id>
     <title>RockyTV's Git Plugin</title>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <authors>Alexandre Oliveira</authors>
     <owners>Alexandre Oliveira</owners>
     <licenseUrl>https://github.com/RockyTV/duality-git/blob/master/LICENSE</licenseUrl>
@@ -11,6 +11,7 @@
     <iconUrl>https://github.com/RockyTV/duality-git/raw/master/nuspecs/git.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>A Duality plugin which turns your current game directory into a Git repository.</description>
+    <summary>A Duality plugin which turns your current game directory into a Git repository.</summary>
     <tags>Duality Git Source Control VCS</tags>
     <releaseNotes>
       - Updated LibGit2Sharp to 0.22.0
@@ -21,9 +22,10 @@
       - Commit dialog will now only show changed files, instead of displaying the entire directory tree
     </releaseNotes>
     <dependencies>
-        <dependency id="AdamsLair.Duality" version="2.1.0" />
-        <dependency id="AdamsLair.Duality.Editor" version="2.1.0" />
+        <dependency id="AdamsLair.Duality" version="2.7.3" />
+        <dependency id="AdamsLair.Duality.Editor" version="2.6.2" />
         <dependency id="LibGit2Sharp" version="0.22.0" />
+        <dependency id="LibGit2Sharp.NativeBinaries" version="1.0.129" />
     </dependencies>
   </metadata>
   <files>
