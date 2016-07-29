@@ -21,6 +21,7 @@ using System.Text;
 using System.IO;
 
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace RockyTV.GitPlugin.Editor
 {
@@ -52,6 +53,58 @@ namespace RockyTV.GitPlugin.Editor
 		protected override void InitPlugin(MainForm main)
 		{
 			base.InitPlugin(main);
+
+			// Fetch Native Binaries from NuGet
+			string nativeBinsDir = Path.Combine(Environment.CurrentDirectory, "NativeBinaries");
+			if (!Directory.Exists(nativeBinsDir))
+			{
+				Directory.CreateDirectory(nativeBinsDir);
+
+				string packageStoreDir = DualityEditorApp.PackageManager.LocalPackageStoreDirectory;
+
+				DirectoryInfo packageDirInfo = new DirectoryInfo(packageStoreDir);
+				// Browse FileSystem
+				foreach (FileSystemInfo fi in packageDirInfo.GetFileSystemInfos("LibGit2Sharp.NativeBinaries*"))
+				{
+					// Check if the entry is a Directory
+					if (fi.GetType() == typeof(DirectoryInfo))
+					{
+						DirectoryInfo di = fi as DirectoryInfo;
+						foreach (DirectoryInfo childDir in di.GetDirectories())
+						{
+							if (childDir.Name == "libgit2")
+							{
+								foreach (DirectoryInfo cd in childDir.GetDirectories())
+								{
+									if (cd.Name == "osx")
+									{
+										foreach (FileInfo file in cd.GetFiles())
+										{
+											string destDir = Path.Combine(nativeBinsDir, cd.Name);
+											if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
+											File.Copy(file.FullName, Path.Combine(destDir, file.Name), true);
+										}
+									}
+									
+									if (cd.Name == "windows" || cd.Name == "linux")
+									{
+										foreach (DirectoryInfo subDir in cd.GetDirectories())
+										{
+											foreach (FileInfo file in subDir.GetFiles())
+											{
+												string destDir = Path.Combine(nativeBinsDir, subDir.Name);
+												if (cd.Name == "linux") destDir = Path.Combine(nativeBinsDir, "linux", subDir.Name);
+												if (!Directory.Exists(destDir)) Directory.CreateDirectory(destDir);
+												File.Copy(file.FullName, Path.Combine(destDir, file.Name), true);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 
 			// Try to initialize our git repository
 			try

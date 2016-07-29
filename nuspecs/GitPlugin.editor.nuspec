@@ -3,29 +3,25 @@
   <metadata>
     <id>RockyTV.GitPlugin.editor</id>
     <title>RockyTV's Git Plugin</title>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <authors>Alexandre Oliveira</authors>
     <owners>Alexandre Oliveira</owners>
     <licenseUrl>https://github.com/RockyTV/duality-git/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/RockyTV/duality-git</projectUrl>
     <iconUrl>https://github.com/RockyTV/duality-git/raw/master/nuspecs/git.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>A Duality plugin which turns your current game directory into a Git repository.</description>
-    <summary>A Duality plugin which turns your current game directory into a Git repository.</summary>
-    <tags>Duality Git Source Control VCS</tags>
+    <description>
+      This plugin initializes a Git repository on your project folder, allowing you to keep track of which files were modified and what was changed in them.
+    </description>
+    <summary>Git version control system for Duality.</summary>
+    <tags>Duality Plugin Git Source Control VCS</tags>
     <releaseNotes>
-      - Updated LibGit2Sharp to 0.22.0
-      - Added new icons to reflect file status
-      - Changed ignore pattern for log files, so now it will ignore every log file
-      - Changed the timezone of the initial commit, it was using UTC before
-      - Changed icon for files
-      - Commit dialog will now only show changed files, instead of displaying the entire directory tree
+      - Fixed a bug where LibGit2Sharp.NativeBinaries wouldn't be installed. The plugin will now try to copy the required files from the local package source.
     </releaseNotes>
     <dependencies>
         <dependency id="AdamsLair.Duality" version="2.7.3" />
         <dependency id="AdamsLair.Duality.Editor" version="2.6.2" />
         <dependency id="LibGit2Sharp" version="0.22.0" />
-        <dependency id="LibGit2Sharp.NativeBinaries" version="1.0.129" />
     </dependencies>
   </metadata>
   <files>
