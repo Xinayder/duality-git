@@ -1,7 +1,7 @@
-**Expected behavior**:
+**Expected behavior**: what happened?
 
-**Actual behavior**:
+**Actual behavior**: what was supposed to happen?
 
-**How to reproduce**:
+**How to reproduce**: how can I reproduce this behavior?
 
-**Comments**:
+**Comments**: any additional comments on the issue?
