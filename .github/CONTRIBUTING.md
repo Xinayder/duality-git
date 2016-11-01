@@ -1,3 +1,4 @@
+## Contributing
 Contributing to the project is a rather simple process, consisting only of 4 small steps.
 
 1. Fork the repository
